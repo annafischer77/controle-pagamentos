@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Pagamento de Eventos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Login */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h1 {
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #666;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #555;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+            width: auto;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info span {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background-color: #999;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            background-color: #777;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            color: #333;
+            border-bottom-color: #333;
+        }
+
+        .tab-button:hover {
+            color: #333;
+        }
+
+        /* Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-bottom: 20px;
+        }
+
+        thead {
+            background-color: #f9f9f9;
+            border-bottom: 2px solid #ddd;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        /* Buttons in table */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-small:hover {
+            background-color: #555;
+        }
+
+        .btn-small.danger {
+            background-color: #d32f2f;
+        }
+
+        .btn-small.danger:hover {
+            background-color: #b71c1c;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 700px;
+            width: 90%;
+            margin: 20px auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Forms */
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        .form-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #666;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+        }
+
+        /* Parcelas */
+        .parcela-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            border-left: 3px solid #ddd;
+        }
+
+        .parcela-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .parcela-header h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .parcela-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .parcela-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .parcela-field label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .parcela-field input,
+        .parcela-field select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .parcela-field input:focus,
+        .parcela-field select:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .parcela-aceites {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+        }
+
+        .aceite-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .aceite-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .aceite-info {
+            color: #666;
+        }
+
+        .btn-add-parcela {
+            padding: 10px 16px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        .btn-add-parcela:hover {
+            background-color: #555;
+        }
+
+        .btn-remove-parcela {
+            padding: 6px 10px;
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-remove-parcela:hover {
+            background-color: #b71c1c;
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pendente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-atraso {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-pago {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        /* Log */
+        .log-item {
+            padding: 12px;
+            border-left: 3px solid #ddd;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .log-time {
+            color: #999;
+            font-weight: 600;
+        }
+
+        .log-user {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .log-action {
+            color: #666;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .parcela-fields {
+                grid-template-columns: 1fr;
+            }
+
+            .parcela-aceites {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .user-info {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-logout {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h1>Controle de Pagamento</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn">Entrar</button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="appScreen" style="display: none;">
+        <div class="header">
+            <h1>Controle de Pagamento de Eventos</h1>
+            <div class="user-info">
+                <span>Logado como: <strong id="currentUser"></strong></span>
+                <button class="btn-logout" onclick="logout()">Sair</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab('projetos')">Projetos</button>
+                <button class="tab-button" onclick="switchTab('pagamentos')">Futuros Pagamentos</button>
+            </div>
+
+            <!-- Tab: Projetos -->
+            <div id="projetos" class="tab-content active">
+                <button class="btn" onclick="openNewProjectModal()" style="margin-bottom: 20px; width: auto; padding: 10px 20px;">+ Novo Projeto</button>
+
+                <div id="projetosTable"></div>
+            </div>
+
+            <!-- Tab: Futuros Pagamentos -->
+            <div id="pagamentos" class="tab-content">
+                <div id="pagamentosTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Novo/Editar Projeto -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="projectModalTitle">Novo Projeto</div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h3>Informações do Evento</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nome do Evento</label>
+                            <input type="text" id="projectName" placeholder="Ex: Casamento João e Maria">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Data do Evento (início)</label>
+                            <input type="date" id="projectDateStart">
+                        </div>
+                        <div class="form-group">
+                            <label>Data do Evento (fim)</label>
+                            <input type="date" id="projectDateEnd">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Plano de Pagamento</h3>
+                    <div id="parcelasContainer"></div>
+                    <button type="button" class="btn-add-parcela" onclick="addParcelaField()">+ Adicionar Parcela</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">Cancelar</button>
+                <button type="button" class="btn" onclick="saveProject()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ver Detalhes/Log -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="detailsModalTitle">Detalhes do Projeto</div>
+            <div class="modal-body">
+                <div id="detailsContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDetailsModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Parcela -->
+    <div id="editParcelaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Editar Parcela</div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Valor (R$)</label>
+                            <input type="number" id="editParcelaValor" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Data Prevista</label>
+                            <input type="date" id="editParcelaData">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="editParcelaStatus" onchange="toggleDataPago()">
+                                <option value="pendente">Pendente</option>
+                                <option value="atraso">Em Atraso</option>
+                                <option value="pago">Pago</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="dataPagoContainer" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Data do Pagamento</label>
+                                <input type="date" id="editParcelaDataPago">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditParcelaModal()">Cancelar</button>
+                <button type="button" class="btn" onclick="saveEditParcela()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const users = [
+            { username: 'a.falcao', password: 'anamaria123', name: 'Ana Falcão' },
+            { username: 'n.granitoff', password: 'natalia123', name: 'Natália Granitoff' },
+            { username: 'j.cardoso', password: 'joao123', name: 'João Cardoso' }
+        ];
+
+        let currentUser = null;
+        let projects = [];
+        let editingProjectId = null;
+        let editingParcelaId = null;
+        let newParcelaCount = 0;
+
+        // Initialize
+        function init() {
+            loadProjects();
+            checkLogin();
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showApp();
+            } else {
+                document.getElementById('loginError').textContent = 'Usuário ou senha inválidos';
+            }
+        });
+
+        function checkLogin() {
+            const saved = localStorage.getItem('currentUser');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                showApp();
+            }
+        }
+
+        function showApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            document.getElementById('currentUser').textContent = currentUser.name;
+            renderProjetosTable();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('appScreen').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('loginError').textContent = '';
+        }
+
+        // Utilities
+        function formatDate(date) {
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function formatDateTime(date) {
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'pagamentos') {
+                renderPagamentosTable();
+            }
+        }
+
+        // Projects
+        function loadProjects() {
+            const saved = localStorage.getItem('projects');
+            projects = saved ? JSON.parse(saved) : [];
+        }
+
+        function saveProjects() {
+            localStorage.setItem('projects', JSON.stringify(projects));
+        }
+
+        function addLog(projectId, action) {
+            const project = projects.find(p => p.id === projectId);
+            if (project) {
+                if (!project.log) project.log = [];
+                project.log.push({
+                    timestamp: formatDateTime(new Date()),
+                    user: currentUser.name,
+                    action: action
+                });
+                saveProjects();
+            }
+        }
+
+        function openNewProjectModal() {
+            editingProjectId = null;
+            newParcelaCount = 0;
+            document.getElementById('projectModalTitle').textContent = 'Novo Projeto';
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectDateStart').value = '';
+            document.getElementById('projectDateEnd').value = '';
+            document.getElementById('parcelasContainer').innerHTML = '';
+            addParcelaField();
+            document.getElementById('projectModal').classList.add('active');
+        }
+
+        function openEditProjectModal(projectId) {
+            editingProjectId = projectId;
+            const project = projects.find(p => p.id === projectId);
+
+            document.getElementById('projectModalTitle').textContent = 'Editar Projeto';
+            document.getElementById('projectName').value = project.name;
+
+            const startDate = project.dateStart.split('/').reverse().join('-');
+            const endDate = project.dateEnd.split('/').reverse().join('-');
+            document.getElementById('projectDateStart').value = startDate;
+            document.getElementById('projectDateEnd').value = endDate;
+
+            newParcelaCount = 0;
+            document.getElementById('parcelasContainer').innerHTML = '';
+
+            project.parcelas.forEach((parcela) => {
+                renderParcelaField(parcela);
+            });
+
+            document.getElementById('projectModal').classList.add('active');
+        }
+
+        function closeProjectModal() {
+            document.getElementById('projectModal').classList.remove('active');
+        }
+
+        function renderParcelaField(parcela) {
+            const container = document.getElementById('parcelasContainer');
+            const index = newParcelaCount++;
+
+            const html = `
+                <div class="parcela-item" id="parcelaField-${parcela.id}">
+                    <div class="parcela-header">
+                        <h4>Parcela ${index + 1}</h4>
+                        <button type="button" class="btn-remove-parcela" onclick="removeParcelaField('${parcela.id}')">Remover</button>
+                    </div>
+                    <div class="parcela-fields">
+                        <div class="parcela-field">
+                            <label>Valor: R$ ${parcela.valor.toFixed(2)}</label>
+                        </div>
+                        <div class="parcela-field">
+                            <label>Data: ${parcela.dataPrevista}</label>
+                        </div>
+                        <div class="parcela-field">
+                            <label>Status: <span class="status-badge status-${parcela.status}">${parcela.status === 'pendente' ? 'Pendente' : parcela.status === 'atraso' ? 'Em Atraso' : 'Pago'}</span></label>
+                        </div>
+                    </div>
+                    ${parcela.status === 'pago' ? `
+                        <div class="parcela-fields">
+                            <div class="parcela-field">
+                                <label>Data Pagamento: ${parcela.dataPago}</label>
+                            </div>
+                        </div>
+                        <div class="parcela-aceites">
+                            <div class="aceite-item">
+                                <input type="checkbox" ${parcela.aceite1 ? 'checked' : ''} onchange="toggleAceite('${editingProjectId}', '${parcela.id}', 1)">
+                                <span class="aceite-info">Aceite 1 ${parcela.aceite1User ? '(' + parcela.aceite1User + ')' : ''}</span>
+                            </div>
+                            <div class="aceite-item">
+                                <input type="checkbox" ${parcela.aceite2 ? 'checked' : ''} onchange="toggleAceite('${editingProjectId}', '${parcela.id}', 2)">
+                                <span class="aceite-info">Aceite 2 ${parcela.aceite2User ? '(' + parcela.aceite2User + ')' : ''}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div style="margin-top: 12px;">
+                        <button type="button" class="btn-small" onclick="openEditParcelaModal('${editingProjectId}', '${parcela.id}')">Editar</button>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML += html;
+        }
+
+        function addParcelaField() {
+            const container = document.getElementById('parcelasContainer');
+            const index = newParcelaCount++;
+
+            const html = `
+                <div class="parcela-item" id="parcelaField-new-${index}">
+                    <div class="parcela-header">
+                        <h4>Parcela ${index + 1}</h4>
+                        <button type="button" class="btn-remove-parcela" onclick="removeNewParcelaField('new-${index}')">Remover</button>
+                    </div>
+                    <div class="parcela-fields">
+                        <div class="parcela-field">
+                            <label>Valor (R$)</label>
+                            <input type="number" class="parcelaValor" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="parcela-field">
+                            <label>Data Prevista</label>
+                            <input type="date" class="parcelaData">
+                        </div>
+                        <div class="parcela-field">
+                            <label>Status</label>
+                            <select class="parcelaStatus">
+                                <option value="pendente">Pendente</option>
+                                <option value="atraso">Em Atraso</option>
+                                <option value="pago">Pago</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML += html;
+        }
+
+        function removeNewParcelaField(id) {
+            const element = document.getElementById(`parcelaField-${id}`);
+            if (element) element.remove();
+        }
+
+        function removeParcelaField(parcelaId) {
+            if (confirm('Tem certeza que deseja remover esta parcela?')) {
+                const element = document.getElementById(`parcelaField-${parcelaId}`);
+                if (element) element.remove();
+            }
+        }
+
+        function saveProject() {
+
